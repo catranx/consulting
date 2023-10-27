@@ -69,6 +69,47 @@
   
     gtag('config', 'G-MPCWB7Y492');
   </script>
+
+  <script src="https://www.google.com/recaptcha/api.js?render=6Lcn5NEoAAAAAIv0IK3DC0LBTwNmd5fJFJVHs6Sv"></script>
+
+  <script>
+    function handleContactFormSubmit(e) {
+      const GOOGLE_REPATCHA_SITE_KEY = "6Lcn5NEoAAAAAIv0IK3DC0LBTwNmd5fJFJVHs6Sv"
+      const CLOUDFLARE_WORKER_URL = "https://cloudflare-contact-us-worker.catranx.workers.dev"
+      const sendEmailFailedMsg = 'Request failed to send. We have logged the error. Please try again later if you have not heard from us in 24 hours or email me directly: armanisamaa [at] gmail [dot] com';
+      e.preventDefault();
+        grecaptcha.ready(async function () {
+          grecaptcha.execute(GOOGLE_REPATCHA_SITE_KEY, {action: 'submit'}).then(function(token) {
+            const body = {
+                from: {
+                    name: name,
+                    email: email,
+                },
+                subject: subject,
+                message: message,
+                token: token
+            };
+            try {
+                const request = await fetch(CLOUDFLARE_WORKER_URL, {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
+                if (request.status === 202) {
+                    sweetAlert("Email Sent!", "We will respond to you quickly!", "success")
+                } else {
+                    const text = await request.text();
+                    sweetAlert("Something went wrong!", `${text} ${sendEmailFailedMsg}. `, "error");
+                }
+            } catch (error) {
+                sweetAlert("Error!", `${sendEmailFailedMsg}`, "error");
+            }
+          });
+        });
+    }
+  </script>
 </head>
 
 <body>
@@ -856,22 +897,22 @@
                 <!-- Contact Form start -->
                   <div class="col-sm-5">
                     <div class="clearfix card-panel grey lighten-5 cform-wrapper">
-                      <form action="#" id="contactForm" novalidate>
+                      <form onSubmit={e => handleContactFormSubmit(e)} action="#" method="POST" id="contactForm" novalidate>
                         <div class="input-field">
-                          <input id="contact_name" type="text" name="contactName" class="validate input-box">
-                          <label for="contact_name" class="input-label">Name</label>
+                          <input id="name" type="text" name="name" class="validate input-box">
+                          <label for="name" class="input-label">Name</label>
                         </div>
                         <div class="input-field">
-                          <input id="email" type="email" name="contactEmail" class="validate input-box">
+                          <input id="email" type="email" name="email" class="validate input-box">
                           <label for="email" class="input-label">Email</label>
                         </div>
                         <div class="input-field">
-                          <input id="subject" type="text" name="contactSubject" class="validate input-box">
+                          <input id="subject" type="text" name="subject" class="validate input-box">
                           <label for="subject" class="input-label">Subject</label>
                         </div>
                         <div class="input-field textarea-input">
-                          <textarea id="textarea1" name="contactMessage" class="validate materialize-textarea" style="height: 22px;"></textarea>
-                          <label for="textarea1" class="input-label">Message</label>
+                          <textarea id="message" name="message" class="validate materialize-textarea" style="height: 22px;"></textarea>
+                          <label for="message" class="input-label">Message</label>
                         </div>
                         <div class="input-field submit-wrap clearfix">
                           <button type="submit" class="left waves-effect btn-flat brand-text submit-btn">send message</button>
