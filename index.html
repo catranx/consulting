@@ -78,8 +78,8 @@
       const CLOUDFLARE_WORKER_URL = "https://cloudflare-contact-us-worker.catranx.workers.dev"
       const sendEmailFailedMsg = 'Request failed to send. We have logged the error. Please try again later if you have not heard from us in 24 hours or email me directly: armanisamaa [at] gmail [dot] com';
       e.preventDefault();
-        grecaptcha.ready(async function () {
-          grecaptcha.execute(GOOGLE_REPATCHA_SITE_KEY, {action: 'submit'}).then(function(token) {
+        grecaptcha.ready(function () {
+          grecaptcha.execute(GOOGLE_REPATCHA_SITE_KEY, {action: 'submit'}).then(async function(token) {
             const body = {
                 from: {
                     name: name,
