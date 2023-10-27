@@ -71,45 +71,6 @@
   </script>
 
   <script src="https://www.google.com/recaptcha/api.js?render=6Lcn5NEoAAAAAIv0IK3DC0LBTwNmd5fJFJVHs6Sv"></script>
-
-  <script>
-    function handleContactFormSubmit(e) {
-      const GOOGLE_REPATCHA_SITE_KEY = "6Lcn5NEoAAAAAIv0IK3DC0LBTwNmd5fJFJVHs6Sv"
-      const CLOUDFLARE_WORKER_URL = "https://cloudflare-contact-us-worker.catranx.workers.dev"
-      const sendEmailFailedMsg = 'Request failed to send. We have logged the error. Please try again later if you have not heard from us in 24 hours or email me directly: armanisamaa [at] gmail [dot] com';
-      e.preventDefault();
-        grecaptcha.ready(function () {
-          grecaptcha.execute(GOOGLE_REPATCHA_SITE_KEY, {action: 'submit'}).then(async function(token) {
-            const body = {
-                from: {
-                    name: name,
-                    email: email,
-                },
-                subject: subject,
-                message: message,
-                token: token
-            };
-            try {
-                const request = await fetch(CLOUDFLARE_WORKER_URL, {
-                    method: "POST",
-                    body: JSON.stringify(body),
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                })
-                if (request.status === 202) {
-                    sweetAlert("Email Sent!", "We will respond to you quickly!", "success")
-                } else {
-                    const text = await request.text();
-                    sweetAlert("Something went wrong!", `${text} ${sendEmailFailedMsg}. `, "error");
-                }
-            } catch (error) {
-                sweetAlert("Error!", `${sendEmailFailedMsg}`, "error");
-            }
-          });
-        });
-    }
-  </script>
 </head>
 
 <body>
@@ -897,7 +858,7 @@
                 <!-- Contact Form start -->
                   <div class="col-sm-5">
                     <div class="clearfix card-panel grey lighten-5 cform-wrapper">
-                      <form onSubmit="handleContactFormSubmit" action="#" method="POST" id="contactForm" novalidate>
+                      <form action="#" method="POST" id="contactForm" novalidate>
                         <div class="input-field">
                           <input id="name" type="text" name="name" class="validate input-box">
                           <label for="name" class="input-label">Name</label>

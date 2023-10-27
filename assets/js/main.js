@@ -718,66 +718,59 @@ if ( $countNumb.length > 0 ) {
 
 
 
-// $('#contactForm').on('submit', function(e){
-// 	e.preventDefault();
-// 	var $this = $(this),
-// 		data = $(this).serialize(),
-// 		name = $this.find('#contact_name'),
-// 		email = $this.find('#email'),
-// 		message = $this.find('#textarea1'),
-// 		loader = $this.find('.form-loader-area'),
-// 		submitBtn = $this.find('button, input[type="submit"]');
+$('#contactForm').on('submit', function(e){
+	e.preventDefault();
+	let $this = $(this),
+		data = $(this).serialize(),
+		subject = $this.find("#subject"),
+		name = $this.find('#name'),
+		email = $this.find('#email'),
+		message = $this.find('#message'),
+		loader = $this.find('.form-loader-area'),
+		submitBtn = $this.find('button, input[type="submit"]');
 
-// 	loader.show();
-// 	submitBtn.attr('disabled', 'disabled');
+	loader.show();
+	submitBtn.attr('disabled', 'disabled');
 
-// 	function success(response) {
-// 		swal("Thanks!", "Your message has been sent successfully!", "success");
-// 		$this.find("input, textarea").val("");
-// 	}
-
-// 	function error(response) {
-// 		$this.find('input.invalid, textarea.invalid').removeClass('invalid');
-// 		if ( response.name ) {
-// 			name.removeClass('valid').addClass('invalid');
-// 		}
-
-// 		if ( response.email ) {
-// 			email.removeClass('valid').addClass('invalid');
-// 		}
-
-// 		if ( response.message ) {
-// 			message.removeClass('valid').addClass('invalid');
-// 		}
-// 	}
-
-// 	$.ajax({
-// 		type: "POST",
-// 		url: "inc/sendEmail.php",
-// 		data: data
-// 	}).done(function(res){
-
-// 		var response = JSON.parse(res);
-
-// 		if ( response.OK ) {
-// 			success(response);
-// 		} else {
-// 			error(response);
-// 		}
-
-
-// 		var hand = setTimeout(function(){
-// 			loader.hide();
-// 			submitBtn.removeAttr('disabled');
-// 			clearTimeout(hand);
-// 		}, 1000);
-
-// 	}).fail(function(){
-// 		sweetAlert("Oops...", "Something went wrong, Try again later!", "error");
-// 		var hand = setTimeout(function(){
-// 			loader.hide();
-// 			submitBtn.removeAttr('disabled');
-// 			clearTimeout(hand);
-// 		}, 1000);
-// 	});
-// });
+	const GOOGLE_REPATCHA_SITE_KEY = "6Lcn5NEoAAAAAIv0IK3DC0LBTwNmd5fJFJVHs6Sv"
+	const CLOUDFLARE_WORKER_URL = "https://cloudflare-contact-us-worker.catranx.workers.dev"
+	const sendEmailFailedMsg = 'Request failed to send. We have logged the error. Please try again later if you have not heard from us in 24 hours or email me directly: armanisamaa [at] gmail [dot] com';
+	e.preventDefault();
+	grecaptcha.ready(function () {
+		grecaptcha.execute(GOOGLE_REPATCHA_SITE_KEY, {action: 'submit'}).then(async function(token) {
+			const body = {
+				from: {
+					name: name.val(),
+					email: email.val(),
+				},
+				subject: subject.val(),
+				message: message.val(),
+				token: token
+			};
+			try {
+				const request = await fetch(CLOUDFLARE_WORKER_URL, {
+					method: "POST",
+					body: JSON.stringify(body),
+					headers: {
+						"Content-Type": "application/json"
+					}
+				})
+				if (request.status === 202) {
+					sweetAlert("Email Sent!", "We will respond to you quickly!", "success")
+					$this.find("input, textarea").val("");
+				} else {
+					const text = await request.text();
+					sweetAlert("Something went wrong!", `${text} ${sendEmailFailedMsg}. `, "error");
+				}
+			} catch (error) {
+				sweetAlert("Error!", `${sendEmailFailedMsg}`, "error");
+			} finally {
+				var hand = setTimeout(function(){
+					loader.hide();
+					submitBtn.removeAttr('disabled');
+					clearTimeout(hand);
+				}, 1000);
+			}
+		});
+	});
+});
