@@ -760,7 +760,7 @@ $('#contactForm').on('submit', function(e){
 					$this.find("input, textarea").val("");
 				} else {
 					const text = await request.text();
-					sweetAlert("Something went wrong!", `${text} ${sendEmailFailedMsg}. `, "error");
+					sweetAlert("Something went wrong!", `${text}. `, "error");
 				}
 			} catch (error) {
 				sweetAlert("Error!", `${sendEmailFailedMsg}`, "error");
